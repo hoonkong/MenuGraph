@@ -1,53 +1,58 @@
 var MenuGraph;
 (function (menuGraph) {
-    var MenuItem = function (text, parentDomNode) {
-        
-        var createDomElement = function (displayText) {
-            var miDiv = document.createElement("div");
-            miDiv.appendChild(document.createTextNode(displayText));
-            return miDiv;
-        }
-        
+    var MenuItem = function (text) {        
         var children;
-        var domElement = createDomElement(text);         
+        var domElement = (function () {
+            var miDiv = document.createElement("div");
+            if (text) {
+                miDiv.appendChild(document.createTextNode(text));
+            }
+            return miDiv;
+        })();
         
         var appendChildItem = function (displayText) {
             if (!children) {
                 children = [];
-            }
-            
-            var item = new MenuItem(displayText, domElement);
+            }            
+            var item = new MenuItem(displayText);
             children.push(item);
-            
-            domElement.appendChild(createDomElement);
-            
             return item;
         }
         
-        var toString = function ()
-        {
-            return "MenuItem: " + text;
+        var toString = function () {
+            return text;
+        }
+        
+        var getDomElement = function () {
+            return domElement;
         }
         
         this.appendChildItem = appendChildItem;
+        this.getDomElement = getDomElement;
         this.toString = toString;
     }
     
-    var createMenu = function (menuJson, parentItem) {
-        var i, menuItem;
-        parentItem = parentItem || new MenuItem("Head");
+    var createMenuHelper = function (menuJson, menuItem) {
+        var i;
+        var parentItem = menuItem;
         
-        //console.log(parentItem.toString());
+        var parentDomElement = parentItem.getDomElement();
         
         for (i = 0; i < menuJson.length; i++) {            
             menuItem = parentItem.appendChildItem(menuJson[i].text);
+            parentDomElement.appendChild(menuItem.getDomElement());
             console.log(parentItem.toString() + " - " + menuItem.toString());
-            if (menuJson[i].children && menuJson[i].children.length && menuJson[i].children.constructor === Array) {
-                //console.log("processing children " + menuJson[i].children);
-                createMenu(menuJson[i].children, menuItem);
+            if (menuJson[i].children && menuJson[i].children.length && menuJson[i].children.constructor === Array) {                
+                createMenuHelper(menuJson[i].children, menuItem);
             }
         }
-        return parentItem;
+        
+        return parentDomElement;
+    }
+    
+    var createMenu = function (menuJson, containerId) {
+        var headDomElement = createMenuHelper(menuJson, new MenuItem());
+        document.getElementById(containerId).appendChild(headDomElement);
     }
     
     menuGraph.createMenu = createMenu;
@@ -77,7 +82,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
             children: [
                 { text: "Menu item 3-1" },
                 { text: "Menu item 3-2" },
-                { text: "Menu item 3-3" },
+                { 
+                    text: "Menu item 3-3",
+                    children: [
+                        { text :"Menu item 3-3-1" },
+                        { text: "Menu item 3-3-2" },
+                        { text: "Menu item 3-3-3" }
+                    ]
+                },
                 { text: "Menu item 3-4" },
                 { text: "Menu item 3-5" }
             ]
@@ -100,7 +112,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
             ]
         }
     ];
-    console.log("DOM fully loaded and parsed");
     
-    var headItem = MenuGraph.createMenu(menu, document.getElementById("menu"));
+    MenuGraph.createMenu(menu, "menu");
 });
