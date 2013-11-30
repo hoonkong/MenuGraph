@@ -10,14 +10,32 @@ var JsonMenu;
         var children;
         var isVisible = true;
         
+        var expandDomElement = (function () {
+            var expandSpan = document.createElement("span");
+            expandSpan.appendChild(document.createTextNode("+"));
+            expandSpan.className = "showMore";
+            return expandSpan;
+        })();
+        
+        var collapseDomElement = (function () {
+            var collapseSpan = document.createElement("span");
+            collapseSpan.appendChild(document.createTextNode("-"));
+            collapseSpan.className = "showMore";
+            return collapseSpan;
+        })();
+        
         var domElement = (function () {
             var miDiv = document.createElement("div");            
-            if (text) {
-                miDiv.appendChild(document.createTextNode(text));                
+            if (text) {   
+                miDiv.appendChild(expandDomElement);
+                miDiv.appendChild(collapseDomElement);
+                miDiv.appendChild(document.createTextNode(text));
+                
                 miDiv.addEventListener("click", function (event) {
                     var i;                    
                     if (children && children.length && event.target === domElement)
-                    {                        
+                    {
+                        toggleExapndCollapse();
                         for (i = 0; i < children.length; i++) {
                             children[i].setVisible(!children[i].getVisible());
                         }
@@ -28,6 +46,13 @@ var JsonMenu;
             return miDiv;
         })();
         
+        var toggleExapndCollapse = function () {
+            var expandVal = expandDomElement.style.display;
+            expandDomElement.style.display = (expandVal === "none") ? "inline-block" : "none";            
+            var collapseVal = collapseDomElement.style.display;
+            collapseDomElement.style.display = (collapseVal === "none") ? "inline-block" : "none";
+        }
+                
         var appendChildItem = function (displayText) {
             if (!children) {
                 children = [];
@@ -50,6 +75,11 @@ var JsonMenu;
             domElement.style.display = visible ? "block" : "none";
         }
         
+        var showExapand = function (visible) {            
+            expandDomElement.style.display = "inline-block";
+            collapseDomElement.style.display = "none";
+        }
+        
         var getVisible = function () {
             return isVisible;
         }
@@ -59,6 +89,7 @@ var JsonMenu;
         this.toString = toString;
         this.setVisible = setVisible;
         this.getVisible = getVisible;
+        this.showExpand = showExapand;
     }
     
     var createMenuHelper = function (menuJson, menuItem, level) {
@@ -74,7 +105,8 @@ var JsonMenu;
             }
             parentDomElement.appendChild(menuItem.getDomElement());
             //console.log(menuItem.toString() + " - lvl: " + level);
-            if (menuJson[i].children && menuJson[i].children.length && menuJson[i].children.constructor === Array) {                
+            if (menuJson[i].children && menuJson[i].children.length && menuJson[i].children.constructor === Array) {
+                menuItem.showExpand();
                 createMenuHelper(menuJson[i].children, menuItem, level + 1);
             }
         }        
@@ -96,7 +128,20 @@ document.addEventListener("DOMContentLoaded", function(event) {
             text: "Menu item 1",
             children: [
                 { text: "Menu item 1-1" },
-                { text: "Menu item 1-2" },
+                { 
+                    text: "Menu item 1-2",
+                    children: [
+                        { text :"Menu item 1-2-1" },
+                        { text: "Menu item 1-2-2" },
+                        { text: "Menu item 1-2-3" },
+                        { text :"Menu item 1-2-4" },
+                        { text: "Menu item 1-2-5" },
+                        { text: "Menu item 1-2-6" },
+                        { text :"Menu item 1-2-7" },
+                        { text: "Menu item 1-2-8" },
+                        { text: "Menu item 1-2-9" }
+                    ]
+                },
                 { text: "Menu item 1-3" },
                 { text: "Menu item 1-4" }
             ]
